@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>台灣公司稅務與勞健保試算</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #f0f4f8; min-height: 100vh; padding: 30px 16px; color: #1a202c;
+    }
+    .container { max-width: 1020px; margin: 0 auto; }
+    h1 { text-align: center; font-size: 1.5rem; font-weight: 700; margin-bottom: 6px; color: #2d3748; }
+    .subtitle { text-align: center; font-size: 0.85rem; color: #718096; margin-bottom: 24px; }
+
+    .card {
+      background: white; border-radius: 16px; padding: 24px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.08); margin-bottom: 20px;
+    }
+    .card h2 { font-size: 1rem; font-weight: 700; margin-bottom: 16px; color: #2d3748; display: flex; align-items: center; gap: 8px; }
+
+    .input-group { margin-bottom: 16px; }
+    .input-group label { display: block; font-size: 0.85rem; font-weight: 600; color: #4a5568; margin-bottom: 6px; }
+    .input-wrapper { position: relative; display: flex; align-items: center; max-width: 340px; }
+    .input-wrapper span.prefix { position: absolute; left: 12px; color: #718096; font-size: 0.9rem; font-weight: 600; pointer-events: none; }
+    .input-wrapper input {
+      width: 100%; padding: 10px 12px 10px 28px;
+      border: 2px solid #e2e8f0; border-radius: 10px;
+      font-size: 1rem; color: #2d3748; transition: border-color 0.2s; outline: none;
+    }
+    .input-wrapper input:focus { border-color: #4299e1; }
+
+    .section-label { font-size: 0.8rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: #718096; margin: 18px 0 10px; }
+
+    /* Employee rows */
+    .emp-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px; background: #f7fafc; margin-bottom: 7px; flex-wrap: wrap;
+    }
+    .emp-badge { font-size: 0.72rem; font-weight: 700; color: white; background: #4299e1; border-radius: 6px; padding: 3px 7px; white-space: nowrap; min-width: 46px; text-align: center; }
+    .emp-field { display: flex; align-items: center; gap: 5px; }
+    .emp-field label { font-size: 0.78rem; font-weight: 600; color: #4a5568; white-space: nowrap; }
+    .emp-field input { padding: 5px 8px; border: 2px solid #e2e8f0; border-radius: 7px; font-size: 0.88rem; color: #2d3748; outline: none; transition: border-color 0.2s; }
+    .emp-field input:focus { border-color: #4299e1; }
+    .emp-field.name-field input { width: 80px; }
+    .emp-field.salary-field input { width: 110px; }
+    .emp-field.deps-field input { width: 56px; text-align: center; }
+    .emp-field.annual-field input { width: 120px; background: #ebf8ff; border-color: #bee3f8; color: #2b6cb0; font-weight: 700; cursor: default; }
+
+    /* Expense rows */
+    .exp-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 12px; border-radius: 10px; background: #fffff0; border: 1px solid #fefcbf; margin-bottom: 7px; flex-wrap: wrap;
+    }
+    .exp-badge { font-size: 0.72rem; font-weight: 700; color: white; background: #d69e2e; border-radius: 6px; padding: 3px 7px; white-space: nowrap; min-width: 46px; text-align: center; }
+    .exp-field { display: flex; align-items: center; gap: 5px; }
+    .exp-field label { font-size: 0.78rem; font-weight: 600; color: #744210; white-space: nowrap; }
+    .exp-field input { padding: 5px 8px; background: white; border: 2px solid #fefcbf; border-radius: 7px; font-size: 0.88rem; color: #2d3748; outline: none; transition: border-color 0.2s; }
+    .exp-field input:focus { border-color: #ecc94b; }
+    .exp-field.name-field input { width: 80px; }
+    .exp-field.amount-field input { width: 110px; }
+    .exp-field.rate-field input { width: 56px; text-align: center; }
+    .exp-tax { font-size: 0.82rem; font-weight: 700; color: #c05621; background: #feebc8; padding: 4px 10px; border-radius: 8px; white-space: nowrap; min-width: 130px; text-align: right; }
+
+    /* 方案 A/B 並排，手機改單欄 */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    @media (max-width: 640px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+
+    .scenario-card { background: white; border-radius: 16px; padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
+    .scenario-card.scenario-a { border-top: 4px solid #4299e1; }
+    .scenario-card.scenario-b { border-top: 4px solid #48bb78; }
+
+    .scenario-header { font-size: 0.92rem; font-weight: 700; margin-bottom: 14px; display: flex; flex-direction: column; gap: 2px; }
+    .scenario-a .scenario-header { color: #2b6cb0; }
+    .scenario-b .scenario-header { color: #276749; }
+    .scenario-header small { font-weight: 400; font-size: 0.78rem; color: #718096; }
+
+    .r-row { display: flex; justify-content: space-between; align-items: center; padding: 7px 10px; border-radius: 8px; margin-bottom: 4px; font-size: 0.82rem; }
+    .r-row .rl { color: #4a5568; font-weight: 500; }
+    .r-row .rv { font-weight: 700; }
+    .r-blue   { background: #ebf8ff; } .r-blue   .rv { color: #2b6cb0; }
+    .r-green  { background: #f0fff4; } .r-green  .rv { color: #276749; }
+    .r-orange { background: #fffaf0; } .r-orange .rv { color: #c05621; }
+    .r-red    { background: #fff5f5; } .r-red    .rv { color: #c53030; }
+    .r-gray   { background: #f7fafc; } .r-gray   .rv { color: #4a5568; }
+    .r-purple { background: #faf5ff; } .r-purple .rv { color: #6b46c1; }
+    .r-teal   { background: #e6fffa; } .r-teal   .rv { color: #234e52; }
+    .r-yellow { background: #fffff0; } .r-yellow .rv { color: #744210; }
+    .r-cap    { background: #fff8e1; } .r-cap    .rv { color: #e65100; }
+    .r-actual { background: #fce4ec; } .r-actual .rv { color: #ad1457; font-size: 0.9rem; }
+
+    .divider { height: 1px; background: #e2e8f0; margin: 8px 0; }
+
+    .sec-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; margin: 10px 0 5px; padding: 3px 8px; border-radius: 6px; }
+    .scenario-a .sec-title { background: #bee3f8; color: #2c5282; }
+    .scenario-b .sec-title { background: #c6f6d5; color: #22543d; }
+
+    .scenario-total { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border-radius: 12px; font-size: 0.9rem; font-weight: 700; margin-top: 12px; color: white; }
+    .scenario-a .scenario-total { background: linear-gradient(135deg,#4299e1,#2b6cb0); }
+    .scenario-b .scenario-total { background: linear-gradient(135deg,#48bb78,#276749); }
+
+    /* 員工保費明細 */
+    .emp-ins-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 10px; border-radius: 7px; margin-bottom: 3px;
+      background: #f0fff4; font-size: 0.78rem; border-left: 3px solid #68d391;
+    }
+    .emp-ins-item .ein { font-weight: 700; color: #276749; min-width: 50px; }
+    .emp-ins-item .eii { color: #4a5568; flex: 1; padding: 0 6px; font-size: 0.74rem; }
+    .emp-ins-item .eic { font-weight: 700; color: #6b46c1; white-space: nowrap; }
+
+    /* 員工自付明細 */
+    .emp-self-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 10px; border-radius: 7px; margin-bottom: 3px;
+      background: #e6fffa; font-size: 0.78rem; border-left: 3px solid #4fd1c5;
+    }
+    .emp-self-item .ein { font-weight: 700; color: #234e52; min-width: 50px; }
+    .emp-self-item .eii { color: #4a5568; flex: 1; padding: 0 6px; font-size: 0.74rem; }
+    .emp-self-item .eic { font-weight: 700; color: #234e52; white-space: nowrap; }
+
+    .emp-self-box { margin-top: 10px; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px; background: #f7fafc; }
+    .emp-self-title { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #718096; margin-bottom: 6px; }
+
+    /* ===== 差額比較區塊（獨立全寬 card） ===== */
+    .diff-card {
+      background: white;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(102,126,234,0.18);
+      margin-bottom: 20px;
+      border-top: 5px solid #764ba2;
+    }
+    .diff-card-header {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      padding: 14px 20px;
+      display: flex; align-items: center; gap: 10px;
+      font-size: 1rem; font-weight: 800; color: white; letter-spacing: 0.03em;
+    }
+    .diff-card-body { padding: 16px 20px; }
+
+    /* 差額明細列 */
+    .diff-detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    @media (max-width: 520px) {
+      .diff-detail-grid { grid-template-columns: 1fr; }
+    }
+    .diff-detail-item {
+      border-radius: 12px; padding: 12px 14px;
+      display: flex; flex-direction: column; gap: 4px;
+    }
+    .diff-detail-item.type-more    { background: #fff5f5; border: 2px solid #fc8181; }
+    .diff-detail-item.type-saving  { background: #f0fff4; border: 2px solid #68d391; }
+    .diff-detail-item.type-neutral { background: #f7fafc; border: 2px solid #cbd5e0; }
+    .diff-detail-label {
+      font-size: 0.72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .diff-detail-item.type-more    .diff-detail-label { color: #9b2c2c; }
+    .diff-detail-item.type-saving  .diff-detail-label { color: #22543d; }
+    .diff-detail-item.type-neutral .diff-detail-label { color: #718096; }
+    .diff-detail-value {
+      font-size: 1.1rem; font-weight: 900;
+    }
+    .diff-detail-item.type-more    .diff-detail-value { color: #c53030; }
+    .diff-detail-item.type-saving  .diff-detail-value { color: #276749; }
+    .diff-detail-item.type-neutral .diff-detail-value { color: #4a5568; }
+    .diff-detail-note {
+      font-size: 0.7rem; font-weight: 500;
+    }
+    .diff-detail-item.type-more    .diff-detail-note { color: #feb2b2; }
+    .diff-detail-item.type-saving  .diff-detail-note { color: #9ae6b4; }
+    .diff-detail-item.type-neutral .diff-detail-note { color: #a0aec0; }
+
+    /* 淨差額大顯示 */
+    .diff-net-block {
+      border-radius: 14px; padding: 16px 20px; margin-bottom: 12px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .diff-net-block.net-b-better { background: linear-gradient(135deg,#c6f6d5,#9ae6b4); border: 2.5px solid #48bb78; }
+    .diff-net-block.net-a-better { background: linear-gradient(135deg,#fed7d7,#feb2b2); border: 2.5px solid #fc8181; }
+    .diff-net-block.net-equal    { background: linear-gradient(135deg,#e2e8f0,#cbd5e0); border: 2.5px solid #a0aec0; }
+    .diff-net-left { display: flex; flex-direction: column; gap: 3px; }
+    .diff-net-tag {
+      font-size: 0.68rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.06em; padding: 2px 8px; border-radius: 20px; display: inline-block;
+    }
+    .net-b-better .diff-net-tag { background: #276749; color: white; }
+    .net-a-better .diff-net-tag { background: #9b2c2c; color: white; }
+    .net-equal    .diff-net-tag { background: #718096; color: white; }
+    .diff-net-label { font-size: 0.82rem; font-weight: 700; margin-top: 2px; }
+    .net-b-better .diff-net-label { color: #22543d; }
+    .net-a-better .diff-net-label { color: #9b2c2c; }
+    .net-equal    .diff-net-label { color: #4a5568; }
+    .diff-net-hint { font-size: 0.72rem; }
+    .net-b-better .diff-net-hint { color: #276749; }
+    .net-a-better .diff-net-hint { color: #c53030; }
+    .net-equal    .diff-net-hint { color: #718096; }
+    .diff-net-amount { font-size: 2rem; font-weight: 900; }
+    .net-b-better .diff-net-amount { color: #22543d; }
+    .net-a-better .diff-net-amount { color: #9b2c2c; }
+    .net-equal    .diff-net-amount { color: #4a5568; }
+
+    /* 結論 */
+    .diff-verdict {
+      padding: 14px 18px; border-radius: 12px;
+      font-size: 0.9rem; font-weight: 700; text-align: center; line-height: 1.7;
+    }
+    .verdict-b-better { background: linear-gradient(135deg,#48bb78,#38a169); color: white; }
+    .verdict-a-better { background: linear-gradient(135deg,#fc8181,#e53e3e); color: white; }
+    .verdict-equal    { background: linear-gradient(135deg,#a0aec0,#718096); color: white; }
+
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 0.7rem; font-weight: 700; }
+    .badge-green { background: #c6f6d5; color: #276749; }
+
+    .note-box { background: #fffff0; border-left: 4px solid #ecc94b; border-radius: 0 10px 10px 0; padding: 12px 14px; font-size: 0.8rem; color: #744210; line-height: 1.6; }
+    .note-box ul { padding-left: 16px; }
+    .note-box li { margin-bottom: 4px; }
+  </style>
+</head>
+<body>
+<div class="container">
+  <h1>🧮 台灣公司稅務 & 勞健保試算</h1>
+  <p class="subtitle">輸入數字後自動即時計算 · 僅供參考，實際申報請諮詢會計師</p>
+
+  <!-- 輸入區 -->
+  <div class="card">
+    <h2>📋 基本資料輸入</h2>
+    <div class="input-group">
+      <label>公司課稅所得額（扣除必要費用後淨利）</label>
+      <div class="input-wrapper">
+        <span class="prefix">$</span>
+        <input type="number" id="netProfit" placeholder="例如：500000" min="0" oninput="calculate()"/>
+      </div>
+    </div>
+
+    <div class="section-label">👥 員工資料</div>
+
+    <div class="emp-row">
+      <span class="emp-badge">員工 1</span>
+      <div class="emp-field name-field"><label>姓名</label><input type="text" id="e1_name" placeholder="（選填）"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e1_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(1);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e1_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e1_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+    </div>
+    <div class="emp-row">
+      <span class="emp-badge">員工 2</span>
+      <div class="emp-field name-field"><label>姓名</label><input type="text" id="e2_name" placeholder="（選填）"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e2_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(2);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e2_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e2_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+    </div>
+    <div class="emp-row">
+      <span class="emp-badge">員工 3</span>
+      <div class="emp-field name-field"><label>姓名</label><input type="text" id="e3_name" placeholder="（選填）"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e3_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(3);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e3_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e3_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+    </div>
+    <div class="emp-row">
+      <span class="emp-badge">員工 4</span>
+      <div class="emp-field name-field"><label>姓名</label><input type="text" id="e4_name" placeholder="（選填）"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e4_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(4);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e4_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e4_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+    </div>
+    <div class="emp-row">
+      <span class="emp-badge">員工 5</span>
+      <div class="emp-field name-field"><label>姓名</label><input type="text" id="e5_name" placeholder="（選填）"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e5_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(5);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e5_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e5_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+    </div>
+
+    <div class="section-label">💡 其他支出項目</div>
+    <div class="exp-row">
+      <span class="exp-badge">支出 1</span>
+      <div class="exp-field name-field"><label>項目</label><input type="text" id="x1_name" placeholder="例：廣告費"/></div>
+      <div class="exp-field amount-field"><label>金額</label><input type="number" id="x1_amount" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <div class="exp-field rate-field"><label>稅率</label><input type="number" id="x1_rate" placeholder="0" min="0" max="100" value="0" oninput="calculate()"/><label>%</label></div>
+      <div class="exp-tax" id="x1_tax">其他支出稅額：$0</div>
+    </div>
+    <div class="exp-row">
+      <span class="exp-badge">支出 2</span>
+      <div class="exp-field name-field"><label>項目</label><input type="text" id="x2_name" placeholder="例：租金"/></div>
+      <div class="exp-field amount-field"><label>金額</label><input type="number" id="x2_amount" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <div class="exp-field rate-field"><label>稅率</label><input type="number" id="x2_rate" placeholder="0" min="0" max="100" value="0" oninput="calculate()"/><label>%</label></div>
+      <div class="exp-tax" id="x2_tax">其他支出稅額：$0</div>
+    </div>
+    <div class="exp-row">
+      <span class="exp-badge">支出 3</span>
+      <div class="exp-field name-field"><label>項目</label><input type="text" id="x3_name" placeholder="例：設備費"/></div>
+      <div class="exp-field amount-field"><label>金額</label><input type="number" id="x3_amount" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <div class="exp-field rate-field"><label>稅率</label><input type="number" id="x3_rate" placeholder="0" min="0" max="100" value="0" oninput="calculate()"/><label>%</label></div>
+      <div class="exp-tax" id="x3_tax">其他支出稅額：$0</div>
+    </div>
+  </div>
+
+  <!-- 方案 A / B 並排（手機自動單欄） -->
+  <div class="compare-grid">
+
+    <!-- 方案 A -->
+    <div class="scenario-card scenario-a">
+      <div class="scenario-header">🔵 方案A｜純淨利課稅<small>以淨利直接計算應繳稅額</small></div>
+
+      <div class="sec-title">營利事業所得稅</div>
+      <div class="r-row r-blue">
+        <span class="rl">課稅所得額（淨利）</span>
+        <span class="rv" id="aA_taxable">-</span>
+      </div>
+      <div class="r-row r-gray">
+        <span class="rl">按稅率計算（× 20%）</span>
+        <span class="rv" id="aA_byRate">-</span>
+      </div>
+      <div class="r-row r-cap">
+        <span class="rl">稅額上限（超額 × 50%）</span>
+        <span class="rv" id="aA_cap">-</span>
+      </div>
+      <div class="r-row r-actual">
+        <span class="rl">實際應繳（取較低值）</span>
+        <span class="rv" id="aA_tax">-</span>
+      </div>
+
+      <div class="scenario-total">
+        <span>公司年度總支出<br><small style="font-weight:400;font-size:0.72rem">應繳稅額</small></span>
+        <span id="aA_total">-</span>
+      </div>
+    </div>
+
+    <!-- 方案 B -->
+    <div class="scenario-card scenario-b">
+      <div class="scenario-header">🟢 方案B｜申報員工薪資<small>含勞健保雇主負擔 & 其他支出</small></div>
+
+      <div class="sec-title">營利事業所得稅</div>
+      <div class="r-row r-blue">
+        <span class="rl">課稅所得額（淨利）</span>
+        <span class="rv" id="aB_taxable">-</span>
+      </div>
+      <div class="r-row r-gray">
+        <span class="rl">申報薪資扣除（年）</span>
+        <span class="rv" id="aB_salDed">$0</span>
+      </div>
+      <div class="r-row r-gray">
+        <span class="rl">其他支出扣除</span>
+        <span class="rv" id="aB_expDed">$0</span>
+      </div>
+      <div class="r-row r-orange">
+        <span class="rl">調整後課稅所得</span>
+        <span class="rv" id="aB_adjusted">-</span>
+      </div>
+      <div class="r-row r-gray">
+        <span class="rl">按稅率計算（× 20%）</span>
+        <span class="rv" id="aB_byRate">-</span>
+      </div>
+      <div class="r-row r-cap">
+        <span class="rl">稅額上限（超額 × 50%）</span>
+        <span class="rv" id="aB_cap">-</span>
+      </div>
+      <div class="r-row r-actual">
+        <span class="rl">實際應繳（取較低值）</span>
+        <span class="rv" id="aB_tax">-</span>
+      </div>
+
+      <div class="sec-title">雇主勞健保負擔（各員工明細）</div>
+      <div id="emp_ins_detail">
+        <div style="font-size:0.78rem;color:#a0aec0;padding:6px 10px">尚無員工資料</div>
+      </div>
+      <div class="r-row r-purple" style="margin-top:6px">
+        <span class="rl">雇主勞健保合計 / 月</span>
+        <span class="rv" id="aB_ins_monthly">-</span>
+      </div>
+      <div class="r-row r-purple">
+        <span class="rl">雇主勞健保合計 / 年</span>
+        <span class="rv" id="aB_ins_annual">-</span>
+      </div>
+
+      <div class="sec-title">其他支出稅額</div>
+      <div class="r-row r-yellow">
+        <span class="rl">其他支出稅額合計（金額 × %）</span>
+        <span class="rv" id="aB_expTax">$0</span>
+      </div>
+
+      <div class="scenario-total">
+        <span>公司年度總支出<br><small style="font-weight:400;font-size:0.72rem">稅 + 雇主勞健保 + 其他支出稅額</small></span>
+        <span id="aB_total">-</span>
+      </div>
+
+      <!-- 員工自付 -->
+      <div class="emp-self-box">
+        <div class="emp-self-title">👤 員工每月自付（供參考，含眷屬影響）</div>
+        <div id="emp_self_detail">
+          <div style="font-size:0.78rem;color:#a0aec0;padding:4px 6px">尚無員工資料</div>
+        </div>
+        <div class="r-row r-teal" style="margin-top:6px;margin-bottom:0">
+          <span class="rl">全體員工自付合計 / 月</span>
+          <span class="rv" id="aB_emp_total">-</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 差額比較（獨立全寬區塊） ===== -->
+  <div class="diff-card">
+    <div class="diff-card-header">⚖️ 方案 A vs 方案 B 差額比較</div>
+    <div class="diff-card-body">
+
+      <!-- 三欄明細 -->
+      <div class="diff-detail-grid">
+        <div class="diff-detail-item type-neutral" id="ditem_tax">
+          <span class="diff-detail-label">稅額差（A - B）</span>
+          <span class="diff-detail-value" id="diff_tax">-</span>
+          <span class="diff-detail-note" id="diff_tax_note">請輸入資料</span>
+        </div>
+        <div class="diff-detail-item type-neutral" id="ditem_ins">
+          <span class="diff-detail-label">方案B 雇主勞健保 / 年</span>
+          <span class="diff-detail-value" id="diff_ins">-</span>
+          <span class="diff-detail-note" id="diff_ins_note">方案B 額外負擔</span>
+        </div>
+        <div class="diff-detail-item type-neutral" id="ditem_exp">
+          <span class="diff-detail-label">方案B 其他支出稅額</span>
+          <span class="diff-detail-value" id="diff_exp">-</span>
+          <span class="diff-detail-note" id="diff_exp_note">方案B 額外負擔</span>
+        </div>
+      </div>
+
+      <!-- 淨差額大字 -->
+      <div class="diff-net-block net-equal" id="diff_net_block">
+        <div class="diff-net-left">
+          <span class="diff-net-tag" id="diff_net_tag">年度淨差額</span>
+          <div class="diff-net-label" id="diff_net_label">A 總支出 - B 總支出</div>
+          <div class="diff-net-hint" id="diff_net_hint">請輸入資料以計算</div>
+        </div>
+        <div class="diff-net-amount" id="diff_net">-</div>
+      </div>
+
+      <!-- 結論 -->
+      <div class="diff-verdict verdict-equal" id="diff_verdict">請輸入淨利以查看建議</div>
+    </div>
+  </div>
+
+  <!-- 注意事項 -->
+  <div class="card">
+    <h2>⚠️ 注意事項</h2>
+    <div class="note-box">
+      <ul>
+        <li><strong>獨資/合夥行號</strong>：負責人薪資不可列費用扣除，僅法人公司（有限/股份有限）適用。</li>
+        <li><strong>薪資合理性</strong>：國稅局會審查薪資是否符合市場行情，過高可能遭剔除。</li>
+        <li><strong>未分配盈餘</strong>：公司有盈餘未分配，次年須就未分配盈餘加徵 5% 所得稅。</li>
+        <li><strong>稅額上限</strong>：課稅所得超過 12 萬時，應納稅額不得超過（課稅所得 - 120,000）× 50%。</li>
+        <li><strong>健保眷屬</strong>：每增加一位眷屬，雇主與員工的健保費均等比增加。</li>
+        <li><strong>健保費率</strong> 5.17%、<strong>勞保費率</strong> 13%，依最新公告為準。</li>
+        <li>實際申報請委託<strong>會計師</strong>，以確保合法節稅並避免補稅風險。</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<script>
+  const salaryGrades = [
+    26400,27600,28800,30300,31800,33300,34800,36300,
+    38200,40100,42000,43900,45800,48200,50600,53000,
+    55400,57800,60800,63800,66800,69800,72800,76500,
+    80400,84000,87600,92400,98600,104600,110600,116500,120000
+  ];
+
+  function getGrade(s) {
+    for (let g of salaryGrades) if (s <= g) return g;
+    return salaryGrades[salaryGrades.length - 1];
+  }
+
+  function calcTaxDetail(income) {
+    if (income <= 120000) return { byRate: 0, cap: 0, actual: 0 };
+    const byRate = income * 0.2;
+    const cap    = (income - 120000) * 0.5;
+    return { byRate, cap, actual: Math.min(byRate, cap) };
+  }
+
+  function fmt(n) {
+    if (isNaN(n) || n === null) return '-';
+    return (n < 0 ? '-$' : '$') + Math.abs(Math.round(n)).toLocaleString('zh-TW');
+  }
+
+  function deductHTML(val) {
+    return val > 0
+      ? `<span style="color:#c05621">- ${Math.round(val).toLocaleString('zh-TW')}</span>`
+      : '$0';
+  }
+
+  function taxHTML(tax) {
+    if (tax <= 0) return `$0 <span class="badge badge-green">免稅 ✓</span>`;
+    return `<span style="color:#ad1457">${fmt(tax)}</span>`;
+  }
+
+  function noDataHTML(val) {
+    return val > 0 ? '' : `<span class="badge badge-green">未達門檻</span>`;
+  }
+
+  function updateAnnual(i) {
+    const salary = parseFloat(document.getElementById(`e${i}_salary`).value) || 0;
+    document.getElementById(`e${i}_annual`).value = salary > 0
+      ? '$' + (salary * 12).toLocaleString('zh-TW') : '';
+  }
+
+  function setDiffItem(id, typeClass, value, note) {
+    document.getElementById(id).className = `diff-detail-item ${typeClass}`;
+    document.getElementById(id).querySelector('.diff-detail-value').textContent = value;
+    document.getElementById(id).querySelector('.diff-detail-note').textContent  = note;
+  }
+
+  function calculate() {
+    const netProfit = parseFloat(document.getElementById('netProfit').value) || 0;
+
+    let totalAnnualSalary = 0;
+    let totalIns_m = 0, totalSelf_m = 0;
+    let empInsHTML = '', empSelfHTML = '';
+
+    for (let i = 1; i <= 5; i++) {
+      const salary = parseFloat(document.getElementById(`e${i}_salary`).value) || 0;
+      const deps   = parseInt(document.getElementById(`e${i}_deps`).value)    || 0;
+      const rawName = document.getElementById(`e${i}_name`).value.trim();
+      const name   = rawName || `員工 ${i}`;
+      if (salary <= 0) continue;
+
+      totalAnnualSalary += salary * 12;
+      const grade  = getGrade(salary);
+      const hBase  = 1 + deps;
+
+      const labor_m   = grade  * 0.13   * 0.7;
+      const health_m  = grade  * 0.0517 * 0.6 * hBase;
+      const pension_m = salary * 0.06;
+      const empIns_m  = labor_m + health_m + pension_m;
+
+      const selfLabor_m  = grade  * 0.13   * 0.2;
+      const selfHealth_m = grade  * 0.0517 * 0.3 * hBase;
+      const empSelf_m    = selfLabor_m + selfHealth_m;
+
+      totalIns_m  += empIns_m;
+      totalSelf_m += empSelf_m;
+
+      const depsText = deps > 0 ? `眷屬 ${deps} 口` : '無眷屬';
+      empInsHTML += `
+        <div class="emp-ins-item">
+          <span class="ein">${name}</span>
+          <span class="eii">投保${fmt(grade)} | ${depsText}</span>
+          <span class="eic">雇主月繳 ${fmt(empIns_m)}</span>
+        </div>`;
+      empSelfHTML += `
+        <div class="emp-self-item">
+          <span class="ein">${name}</span>
+          <span class="eii">${depsText} | 勞保+健保</span>
+          <span class="eic">自付 ${fmt(empSelf_m)} / 月</span>
+        </div>`;
+    }
+
+    const insAnnual = totalIns_m * 12;
+    const noEmpMsg  = '<div style="font-size:0.78rem;color:#a0aec0;padding:6px 10px">尚無員工資料</div>';
+    document.getElementById('emp_ins_detail').innerHTML  = empInsHTML  || noEmpMsg;
+    document.getElementById('emp_self_detail').innerHTML = empSelfHTML || noEmpMsg;
+
+    let totalExpAmount = 0, totalExpTax = 0;
+    for (let i = 1; i <= 3; i++) {
+      const amount = parseFloat(document.getElementById(`x${i}_amount`).value) || 0;
+      const rate   = parseFloat(document.getElementById(`x${i}_rate`).value)   || 0;
+      const tax    = amount * rate / 100;
+      totalExpAmount += amount;
+      totalExpTax    += tax;
+      document.getElementById(`x${i}_tax`).textContent = `其他支出稅額：${fmt(tax)}`;
+    }
+
+    // 方案 A
+    const tdA = calcTaxDetail(netProfit);
+    document.getElementById('aA_taxable').textContent = fmt(netProfit);
+    document.getElementById('aA_byRate').innerHTML    = tdA.byRate > 0 ? fmt(tdA.byRate) : `$0 <span class="badge badge-green">未達門檻</span>`;
+    document.getElementById('aA_cap').innerHTML       = tdA.cap    > 0 ? fmt(tdA.cap)    : `$0 <span class="badge badge-green">未達門檻</span>`;
+    document.getElementById('aA_tax').innerHTML       = taxHTML(tdA.actual);
+    document.getElementById('aA_total').textContent   = fmt(tdA.actual) + ' / 年';
+
+    // 方案 B
+    const adjB = Math.max(0, netProfit - totalAnnualSalary - totalExpAmount);
+    const tdB  = calcTaxDetail(adjB);
+    const totB = tdB.actual + insAnnual + totalExpTax;
+
+    document.getElementById('aB_taxable').textContent   = fmt(netProfit);
+    document.getElementById('aB_salDed').innerHTML      = deductHTML(totalAnnualSalary);
+    document.getElementById('aB_expDed').innerHTML      = deductHTML(totalExpAmount);
+    document.getElementById('aB_adjusted').textContent  = fmt(adjB);
+    document.getElementById('aB_byRate').innerHTML      = tdB.byRate > 0 ? fmt(tdB.byRate) : `$0 <span class="badge badge-green">未達門檻</span>`;
+    document.getElementById('aB_cap').innerHTML         = tdB.cap    > 0 ? fmt(tdB.cap)    : `$0 <span class="badge badge-green">未達門檻</span>`;
+    document.getElementById('aB_tax').innerHTML         = taxHTML(tdB.actual);
+    document.getElementById('aB_ins_monthly').textContent = totalIns_m > 0 ? fmt(totalIns_m) + ' / 月' : '-';
+    document.getElementById('aB_ins_annual').textContent  = insAnnual  > 0 ? fmt(insAnnual)  + ' / 年' : '-';
+    document.getElementById('aB_expTax').textContent    = fmt(totalExpTax);
+    document.getElementById('aB_total').textContent     = fmt(totB) + ' / 年';
+    document.getElementById('aB_emp_total').textContent = totalSelf_m > 0 ? fmt(totalSelf_m) + ' / 月' : '-';
+
+    // ===== 差額比較 =====
+    const diffTax = tdA.actual - tdB.actual;
+    const diffNet = tdA.actual - totB;
+
+    // 稅額差
+    setDiffItem('ditem_tax',
+      diffTax > 0 ? 'type-more' : diffTax < 0 ? 'type-saving' : 'type-neutral',
+      (diffTax >= 0 ? '+' : '') + fmt(diffTax),
+      diffTax > 0 ? '方案A 稅額較高' : diffTax < 0 ? '方案B 稅額較高' : '兩方案稅額相同'
+    );
+
+    // 勞健保
+    setDiffItem('ditem_ins',
+      insAnnual > 0 ? 'type-more' : 'type-neutral',
+      fmt(insAnnual),
+      insAnnual > 0 ? '方案B 額外負擔' : '無員工，不適用'
+    );
+
+    // 其他支出稅額
+    setDiffItem('ditem_exp',
+      totalExpTax > 0 ? 'type-more' : 'type-neutral',
+      fmt(totalExpTax),
+      totalExpTax > 0 ? '方案B 額外負擔' : '無其他支出稅額'
+    );
+
+    // 淨差額
+    const nb = document.getElementById('diff_net_block');
+    const tag = document.getElementById('diff_net_tag');
+    const lbl = document.getElementById('diff_net_label');
+    const hnt = document.getElementById('diff_net_hint');
+    const amt = document.getElementById('diff_net');
+
+    if (diffNet > 1) {
+      nb.className  = 'diff-net-block net-b-better';
+      tag.textContent = '✅ 方案B 較划算';
+      lbl.textContent = '選方案B 每年可節省';
+      hnt.textContent = '申報薪資節稅 > 新增勞健保成本';
+      amt.textContent = fmt(Math.abs(diffNet));
+    } else if (diffNet < -1) {
+      nb.className  = 'diff-net-block net-a-better';
+      tag.textContent = '⚠️ 方案A 較划算';
+      lbl.textContent = '選方案A 每年可節省';
+      hnt.textContent = '新增勞健保成本 > 申報薪資節稅';
+      amt.textContent = fmt(Math.abs(diffNet));
+    } else {
+      nb.className  = 'diff-net-block net-equal';
+      tag.textContent = '年度淨差額';
+      lbl.textContent = '兩方案差異不大';
+      hnt.textContent = netProfit > 0 ? '兩方案年度支出相近' : '請輸入淨利以計算';
+      amt.textContent = '$0';
+    }
+
+    // 結論
+    const verdict = document.getElementById('diff_verdict');
+    if (netProfit === 0) {
+      verdict.className = 'diff-verdict verdict-equal';
+      verdict.textContent = '請輸入淨利以查看建議';
+    } else if (diffNet > 1) {
+      verdict.className = 'diff-verdict verdict-b-better';
+      verdict.innerHTML = `✅ 建議選擇方案B　申報員工薪資後，節稅效益高於勞健保額外成本<br>每年可節省 ${fmt(Math.abs(diffNet))}`;
+    } else if (diffNet < -1) {
+      verdict.className = 'diff-verdict verdict-a-better';
+      verdict.innerHTML = `⚠️ 建議選擇方案A　勞健保額外成本高於申報薪資所帶來的節稅效益<br>每年可節省 ${fmt(Math.abs(diffNet))}`;
+    } else {
+      verdict.className = 'diff-verdict verdict-equal';
+      verdict.textContent = '兩方案年度總支出相近，差異不大';
+    }
+  }
+
+  for (let i = 1; i <= 5; i++) updateAnnual(i);
+  calculate();
+</script>
+</body>
+</html>
