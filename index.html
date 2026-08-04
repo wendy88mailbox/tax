@@ -46,7 +46,11 @@
     .emp-field.name-field input { width: 80px; }
     .emp-field.salary-field input { width: 110px; }
     .emp-field.deps-field input { width: 56px; text-align: center; }
-    .emp-field.annual-field input { width: 120px; background: #ebf8ff; border-color: #bee3f8; color: #2b6cb0; font-weight: 700; cursor: default; }
+    .emp-field.annual-field input { width: 120px; background: #f7fafc; border-color: #cbd5e0; color: #2d3748; font-weight: 600; }
+    .emp-ins-btn { padding: 5px 12px; background: linear-gradient(135deg,#667eea,#764ba2); color: white; border: none; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+    .emp-ins-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(102,126,234,0.3); }
+    .emp-tax-btn { padding: 5px 12px; background: linear-gradient(135deg,#48bb78,#38a169); color: white; border: none; border-radius: 7px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+    .emp-tax-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(72,187,120,0.3); }
 
     /* Expense rows */
     .exp-row {
@@ -251,37 +255,47 @@
     <div class="emp-row">
       <span class="emp-badge">員工 1</span>
       <div class="emp-field name-field"><label>姓名</label><input type="text" id="e1_name" placeholder="（選填）"/></div>
-      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e1_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(1);calculate()"/></div>
-      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e1_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e1_salary" placeholder="0" min="0" value="0" oninput="updateFromMonthly(1);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="number" id="e1_annual" placeholder="0" min="0" value="0" oninput="updateFromAnnual(1);calculate()"/></div>
       <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e1_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <button class="emp-ins-btn" onclick="openInsuranceCalc(1)">💰 勞健保費</button>
+      <button class="emp-tax-btn" onclick="openTaxCalc(1)">📊 個人所得稅</button>
     </div>
     <div class="emp-row">
       <span class="emp-badge">員工 2</span>
       <div class="emp-field name-field"><label>姓名</label><input type="text" id="e2_name" placeholder="（選填）"/></div>
-      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e2_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(2);calculate()"/></div>
-      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e2_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e2_salary" placeholder="0" min="0" value="0" oninput="updateFromMonthly(2);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="number" id="e2_annual" placeholder="0" min="0" value="0" oninput="updateFromAnnual(2);calculate()"/></div>
       <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e2_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <button class="emp-ins-btn" onclick="openInsuranceCalc(2)">💰 勞健保費</button>
+      <button class="emp-tax-btn" onclick="openTaxCalc(2)">📊 個人所得稅</button>
     </div>
     <div class="emp-row">
       <span class="emp-badge">員工 3</span>
       <div class="emp-field name-field"><label>姓名</label><input type="text" id="e3_name" placeholder="（選填）"/></div>
-      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e3_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(3);calculate()"/></div>
-      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e3_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e3_salary" placeholder="0" min="0" value="0" oninput="updateFromMonthly(3);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="number" id="e3_annual" placeholder="0" min="0" value="0" oninput="updateFromAnnual(3);calculate()"/></div>
       <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e3_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <button class="emp-ins-btn" onclick="openInsuranceCalc(3)">💰 勞健保費</button>
+      <button class="emp-tax-btn" onclick="openTaxCalc(3)">📊 個人所得稅</button>
     </div>
     <div class="emp-row">
       <span class="emp-badge">員工 4</span>
       <div class="emp-field name-field"><label>姓名</label><input type="text" id="e4_name" placeholder="（選填）"/></div>
-      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e4_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(4);calculate()"/></div>
-      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e4_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e4_salary" placeholder="0" min="0" value="0" oninput="updateFromMonthly(4);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="number" id="e4_annual" placeholder="0" min="0" value="0" oninput="updateFromAnnual(4);calculate()"/></div>
       <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e4_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <button class="emp-ins-btn" onclick="openInsuranceCalc(4)">💰 勞健保費</button>
+      <button class="emp-tax-btn" onclick="openTaxCalc(4)">📊 個人所得稅</button>
     </div>
     <div class="emp-row">
       <span class="emp-badge">員工 5</span>
       <div class="emp-field name-field"><label>姓名</label><input type="text" id="e5_name" placeholder="（選填）"/></div>
-      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e5_salary" placeholder="0" min="0" value="0" oninput="updateAnnual(5);calculate()"/></div>
-      <div class="emp-field annual-field"><label>年薪</label><input type="text" id="e5_annual" readonly placeholder="$0"/></div>
+      <div class="emp-field salary-field"><label>月薪</label><input type="number" id="e5_salary" placeholder="0" min="0" value="0" oninput="updateFromMonthly(5);calculate()"/></div>
+      <div class="emp-field annual-field"><label>年薪</label><input type="number" id="e5_annual" placeholder="0" min="0" value="0" oninput="updateFromAnnual(5);calculate()"/></div>
       <div class="emp-field deps-field"><label>眷屬</label><input type="number" id="e5_deps" placeholder="0" min="0" value="0" oninput="calculate()"/></div>
+      <button class="emp-ins-btn" onclick="openInsuranceCalc(5)">💰 勞健保費</button>
+      <button class="emp-tax-btn" onclick="openTaxCalc(5)">📊 個人所得稅</button>
     </div>
 
     <div class="section-label">💡 其他支出項目</div>
@@ -507,10 +521,49 @@
     return val > 0 ? '' : `<span class="badge badge-green">未達門檻</span>`;
   }
 
-  function updateAnnual(i) {
+  function updateFromMonthly(i) {
     const salary = parseFloat(document.getElementById(`e${i}_salary`).value) || 0;
-    document.getElementById(`e${i}_annual`).value = salary > 0
-      ? '$' + (salary * 12).toLocaleString('zh-TW') : '';
+    const annual = salary * 12;
+    document.getElementById(`e${i}_annual`).value = annual > 0 ? Math.round(annual) : '';
+  }
+  
+  function updateFromAnnual(i) {
+    const annual = parseFloat(document.getElementById(`e${i}_annual`).value) || 0;
+    const salary = annual / 12;
+    document.getElementById(`e${i}_salary`).value = salary > 0 ? Math.round(salary) : '';
+  }
+
+  function openInsuranceCalc(empId) {
+    const salary = parseFloat(document.getElementById(`e${empId}_salary`).value) || 0;
+    const deps = parseInt(document.getElementById(`e${empId}_deps`).value) || 0;
+    const name = document.getElementById(`e${empId}_name`).value.trim() || `員工 ${empId}`;
+    
+    // 建立 URL 參數
+    const params = new URLSearchParams({
+      empId: empId,
+      name: name,
+      salary: salary,
+      deps: deps
+    });
+    
+    // 開啟新頁面
+    window.open(`insurance-calculator.html?${params.toString()}`, '_blank');
+  }
+
+  function openTaxCalc(empId) {
+    const salary = parseFloat(document.getElementById(`e${empId}_salary`).value) || 0;
+    const annual = salary * 12;
+    const name = document.getElementById(`e${empId}_name`).value.trim() || `員工 ${empId}`;
+    
+    // 建立 URL 參數
+    const params = new URLSearchParams({
+      empId: empId,
+      name: name,
+      annual: annual
+    });
+    
+    // 開啟新頁面
+    window.open(`personal-tax-calculator.html?${params.toString()}`, '_blank');
   }
 
   function setDiffItem(id, typeClass, value, note) {
@@ -674,7 +727,10 @@
     }
   }
 
-  for (let i = 1; i <= 5; i++) updateAnnual(i);
+  for (let i = 1; i <= 5; i++) {
+    document.getElementById(`e${i}_salary`).value = 0;
+    document.getElementById(`e${i}_annual`).value = '';
+  }
   calculate();
 </script>
 </body>

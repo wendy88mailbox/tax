@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>勞健保費試算</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh; padding: 30px 16px; color: #1a202c;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    .header {
+      text-align: center; margin-bottom: 30px; color: white;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .header .emp-name { font-size: 1.2rem; font-weight: 600; opacity: 0.95; }
+    
+    .card {
+      background: white; border-radius: 20px; padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15); margin-bottom: 20px;
+    }
+    
+    .card h2 { 
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; 
+      color: #2d3748; display: flex; align-items: center; gap: 10px;
+      padding-bottom: 12px; border-bottom: 3px solid #e2e8f0;
+    }
+    
+    .input-group { margin-bottom: 20px; }
+    .input-group label { 
+      display: block; font-size: 0.9rem; font-weight: 600; 
+      color: #4a5568; margin-bottom: 8px; 
+    }
+    .input-wrapper { position: relative; display: flex; align-items: center; max-width: 400px; }
+    .input-wrapper span.prefix { 
+      position: absolute; left: 14px; color: #718096; 
+      font-size: 1rem; font-weight: 600; pointer-events: none; 
+    }
+    .input-wrapper input {
+      width: 100%; padding: 14px 16px 14px 32px;
+      border: 3px solid #e2e8f0; border-radius: 12px;
+      font-size: 1.1rem; color: #2d3748; transition: all 0.2s; 
+      outline: none; font-weight: 600;
+    }
+    .input-wrapper input:focus { 
+      border-color: #667eea; 
+      box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
+    }
+    
+    .result-section {
+      background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%);
+      border-radius: 16px; padding: 24px; margin-bottom: 20px;
+    }
+    
+    .result-header {
+      font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #718096; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    
+    .result-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;
+      font-size: 0.95rem; transition: transform 0.2s;
+    }
+    .result-row:hover { transform: translateX(4px); }
+    .result-row .label { color: #4a5568; font-weight: 600; }
+    .result-row .value { font-weight: 800; font-size: 1.05rem; }
+    
+    .r-purple { background: #faf5ff; border-left: 4px solid #9f7aea; }
+    .r-purple .value { color: #6b46c1; }
+    
+    .r-blue { background: #ebf8ff; border-left: 4px solid #4299e1; }
+    .r-blue .value { color: #2b6cb0; }
+    
+    .r-green { background: #f0fff4; border-left: 4px solid #48bb78; }
+    .r-green .value { color: #276749; }
+    
+    .r-orange { background: #fffaf0; border-left: 4px solid #ed8936; }
+    .r-orange .value { color: #c05621; }
+    
+    .r-red { background: #fff5f5; border-left: 4px solid #fc8181; }
+    .r-red .value { color: #c53030; }
+    
+    .total-box {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      border-radius: 16px; padding: 20px 24px;
+      color: white; margin-top: 16px;
+      box-shadow: 0 8px 24px rgba(102,126,234,0.3);
+    }
+    .total-box .label {
+      font-size: 0.85rem; font-weight: 600; opacity: 0.9;
+      margin-bottom: 6px;
+    }
+    .total-box .value {
+      font-size: 2rem; font-weight: 900;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .detail-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+      margin-bottom: 16px;
+    }
+    @media (max-width: 600px) {
+      .detail-grid { grid-template-columns: 1fr; }
+    }
+    
+    .detail-item {
+      background: white; border-radius: 12px; padding: 14px;
+      border: 2px solid #e2e8f0;
+    }
+    .detail-item .dt-label {
+      font-size: 0.75rem; font-weight: 700; color: #718096;
+      text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;
+    }
+    .detail-item .dt-value {
+      font-size: 1.3rem; font-weight: 800; color: #2d3748;
+    }
+    
+    .note-box {
+      background: #fffbeb; border-left: 5px solid #f59e0b;
+      border-radius: 0 12px 12px 0; padding: 16px 18px;
+      font-size: 0.85rem; color: #92400e; line-height: 1.7;
+      margin-top: 20px;
+    }
+    .note-box strong { color: #78350f; }
+    .note-box ul { padding-left: 20px; margin-top: 8px; }
+    .note-box li { margin-bottom: 6px; }
+    
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; background: white; color: #667eea;
+      border: 3px solid #667eea; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+      margin-top: 20px;
+    }
+    .back-btn:hover {
+      background: #667eea; color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(102,126,234,0.3);
+    }
+    
+    .info-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700; margin-left: 8px;
+    }
+    .badge-info { background: #bee3f8; color: #2c5282; }
+    
+    .divider {
+      height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>💰 勞健保費試算</h1>
+    <div class="emp-name" id="empNameDisplay">員工資料</div>
+  </div>
+
+  <!-- 輸入區 -->
+  <div class="card">
+    <h2>📋 基本資料</h2>
+    
+    <div class="input-group">
+      <label>年薪（或輸入月薪自動計算）</label>
+      <div class="input-wrapper">
+        <span class="prefix">$</span>
+        <input type="number" id="annualSalary" placeholder="例如：480000" min="0" oninput="calculateFromAnnual()"/>
+      </div>
+      <div style="margin-top: 8px; font-size: 0.8rem; color: #718096;">
+        或輸入月薪：
+        <input type="number" id="monthlySalary" placeholder="40000" min="0" 
+               style="width: 120px; padding: 6px 10px; border: 2px solid #e2e8f0; border-radius: 8px; margin-left: 8px;"
+               oninput="calculateFromMonthly()"/> 
+        元/月
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label>眷屬人數 <span class="info-badge badge-info">影響健保費</span></label>
+      <div class="input-wrapper">
+        <span class="prefix">#</span>
+        <input type="number" id="dependents" placeholder="0" min="0" value="0" oninput="calculate()"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- 公司負擔 -->
+  <div class="card">
+    <h2>🏢 公司應繳保費（雇主負擔）</h2>
+    
+    <div class="result-section">
+      <div class="result-header">📊 每月保費明細</div>
+      
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="dt-label">投保薪資級距</div>
+          <div class="dt-value" id="companyGrade">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="dt-label">健保眷屬計算</div>
+          <div class="dt-value" id="companyDeps">-</div>
+        </div>
+      </div>
+      
+      <div class="result-row r-purple">
+        <span class="label">勞保費（70%）</span>
+        <span class="value" id="companyLabor">-</span>
+      </div>
+      <div class="result-row r-blue">
+        <span class="label">健保費（60% × 眷口）</span>
+        <span class="value" id="companyHealth">-</span>
+      </div>
+      <div class="result-row r-green">
+        <span class="label">勞退提撥（6%）</span>
+        <span class="value" id="companyPension">-</span>
+      </div>
+      
+      <div class="total-box">
+        <div class="label">公司每月應繳總額</div>
+        <div class="value" id="companyTotal">-</div>
+      </div>
+    </div>
+    
+    <div class="result-section" style="background: linear-gradient(135deg, #faf5ff 0%, #e9d8fd 100%);">
+      <div class="result-header" style="color: #6b46c1;">📅 年度總計</div>
+      <div class="result-row r-purple">
+        <span class="label">公司全年應繳（月繳 × 12）</span>
+        <span class="value" id="companyAnnual">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 員工個人負擔 -->
+  <div class="card">
+    <h2>👤 員工個人應繳保費（自付額）</h2>
+    
+    <div class="result-section">
+      <div class="result-header">📊 每月保費明細</div>
+      
+      <div class="detail-grid">
+        <div class="detail-item">
+          <div class="dt-label">投保薪資級距</div>
+          <div class="dt-value" id="empGrade">-</div>
+        </div>
+        <div class="detail-item">
+          <div class="dt-label">健保眷屬計算</div>
+          <div class="dt-value" id="empDeps">-</div>
+        </div>
+      </div>
+      
+      <div class="result-row r-orange">
+        <span class="label">勞保費（20%）</span>
+        <span class="value" id="empLabor">-</span>
+      </div>
+      <div class="result-row r-orange">
+        <span class="label">健保費（30% × 眷口）</span>
+        <span class="value" id="empHealth">-</span>
+      </div>
+      
+      <div class="total-box" style="background: linear-gradient(135deg, #ed8936, #c05621);">
+        <div class="label">員工每月自付總額</div>
+        <div class="value" id="empTotal">-</div>
+      </div>
+    </div>
+    
+    <div class="result-section" style="background: linear-gradient(135deg, #fffaf0 0%, #feebc8 100%);">
+      <div class="result-header" style="color: #c05621;">📅 年度總計</div>
+      <div class="result-row r-orange">
+        <span class="label">員工全年應繳（月繳 × 12）</span>
+        <span class="value" id="empAnnual">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 未加入公司健保 -->
+  <div class="card">
+    <h2>🏥 未加入公司健保情況</h2>
+    
+    <div class="result-section" style="background: linear-gradient(135deg, #fff5f5 0%, #fed7d7 100%);">
+      <div class="result-header" style="color: #c53030;">⚠️ 員工需自行投保</div>
+      
+      <div class="result-row r-red">
+        <span class="label">以個人身份投保健保（每月，含眷屬）</span>
+        <span class="value" id="selfHealth">-</span>
+      </div>
+      
+      <div class="result-row r-red" style="margin-top: 8px;">
+        <span class="label">自行投保全年費用（年繳 × 12）</span>
+        <span class="value" id="selfHealthAnnual">-</span>
+      </div>
+      
+      <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 10px; border-left: 4px solid #fc8181;">
+        <div style="font-size: 0.8rem; color: #742a2a; font-weight: 600; margin-bottom: 4px;">
+          💡 與公司健保差額（每月）
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: #c53030;" id="healthDiff">-</div>
+        <div style="font-size: 0.75rem; color: #9b2c2c; margin-top: 4px;" id="healthDiffNote">-</div>
+      </div>
+      
+      <div style="margin-top: 12px; padding: 12px; background: white; border-radius: 10px; border-left: 4px solid #fc8181;">
+        <div style="font-size: 0.8rem; color: #742a2a; font-weight: 600; margin-bottom: 4px;">
+          📅 與公司健保差額（全年）
+        </div>
+        <div style="font-size: 1.2rem; font-weight: 800; color: #c53030;" id="healthDiffAnnual">-</div>
+      </div>
+    </div>
+    
+    <div class="note-box">
+      <strong>📌 說明：</strong>
+      <ul>
+        <li><strong>職業工會投保</strong>：以基本工資或最低級距投保，費率約 60%（無雇主分擔）</li>
+        <li><strong>眷屬附加</strong>：每位眷屬均需額外繳納保費</li>
+        <li><strong>建議</strong>：若公司有提供健保，加入公司健保通常較為划算</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 投保級距說明 -->
+  <div class="card">
+    <h2>📊 勞保、健保、勞退保費對照表</h2>
+    
+    <div class="note-box" style="background: #f0f9ff; border-left-color: #3b82f6;">
+      <strong style="color: #1e40af;">💡 說明：</strong>
+      以下為各投保薪資級距的保費明細。您可以根據員工月薪查找對應級距，並了解公司與員工各自應負擔的費用。
+    </div>
+    
+    <div style="margin: 20px 0; padding: 16px; background: linear-gradient(135deg, #f0f9ff, #e0f2fe); border-radius: 12px; border-left: 4px solid #3b82f6;">
+      <div style="font-size: 0.85rem; color: #1e40af; font-weight: 700; margin-bottom: 8px;">
+        📌 費用計算基準（無眷屬情況）
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; font-size: 0.8rem; color: #1e3a8a;">
+        <div>
+          <strong>🏢 公司負擔：</strong><br>
+          • 勞保費 70%<br>
+          • 健保費 60%<br>
+          • 勞退提撥 6%*
+        </div>
+        <div>
+          <strong>👤 員工自付：</strong><br>
+          • 勞保費 20%<br>
+          • 健保費 30%<br>
+          • 勞退自提 0%~6% (選填)
+        </div>
+        <div>
+          <strong>⚠️ 注意事項：</strong><br>
+          • 政府負擔 10%<br>
+          • 眷屬影響健保費<br>
+          • *勞退以實際薪資計算
+        </div>
+      </div>
+    </div>
+    
+    <div style="margin-top: 20px; overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; font-size: 0.78rem; table-layout: auto;">
+        <thead>
+          <tr style="background: linear-gradient(135deg, #667eea, #764ba2); color: white;">
+            <th style="padding: 14px 8px; text-align: center; font-weight: 700; border-right: 2px solid rgba(255,255,255,0.4); width: 60px;">級距</th>
+            <th style="padding: 14px 10px; text-align: right; font-weight: 700; border-right: 2px solid rgba(255,255,255,0.4); width: 110px;">投保薪資</th>
+            <th style="padding: 14px 8px; text-align: right; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.25); width: 85px;">公司<br>勞保 70%</th>
+            <th style="padding: 14px 8px; text-align: right; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.25); width: 85px;">公司<br>健保 60%</th>
+            <th style="padding: 14px 8px; text-align: right; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.25); width: 85px;">公司<br>勞退 6%</th>
+            <th style="padding: 14px 10px; text-align: right; font-weight: 800; border-right: 2px solid rgba(255,255,255,0.4); width: 100px; background: rgba(255,255,255,0.15);">公司<br>小計</th>
+            <th style="padding: 14px 8px; text-align: right; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.25); width: 85px;">員工<br>勞保 20%</th>
+            <th style="padding: 14px 8px; text-align: right; font-weight: 700; border-right: 1px solid rgba(255,255,255,0.25); width: 85px;">員工<br>健保 30%</th>
+            <th style="padding: 14px 10px; text-align: right; font-weight: 800; width: 100px; background: rgba(255,255,255,0.15);">員工<br>小計</th>
+          </tr>
+        </thead>
+        <tbody id="gradeTableBody">
+          <!-- 由 JavaScript 動態生成 -->
+        </tbody>
+      </table>
+    </div>
+    
+    <div class="note-box" style="margin-top: 20px;">
+      <strong>📌 使用說明：</strong>
+      <ul>
+        <li><strong>級距對應</strong>：您的月薪會自動對應到「大於或等於該薪資」的最低級距</li>
+        <li><strong>勞退提撥</strong>：公司勞退提撥是以「實際薪資 × 6%」計算，表格中以投保級距計算僅供參考</li>
+        <li><strong>眷屬影響</strong>：若有眷屬，健保費會等比增加（公司與員工皆然），計算方式為：健保費 × (1 + 眷屬數)</li>
+        <li><strong>費率說明</strong>：
+          <ul style="margin-top: 4px;">
+            <li>勞保費率：13%（雇主 70% + 員工 20% + 政府 10%）</li>
+            <li>健保費率：5.17%（雇主 60% + 員工 30% + 政府 10%）</li>
+          </ul>
+        </li>
+        <li><strong>高亮顯示</strong>：輸入年薪後，對應的級距會自動以黃色背景高亮顯示</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- 注意事項 -->
+  <div class="card">
+    <h2>⚠️ 試算說明</h2>
+    <div class="note-box">
+      <ul>
+        <li><strong>投保級距</strong>：依勞保局公告之薪資分級表，自動對應至適用級距</li>
+        <li><strong>勞保費率</strong>：13%（雇主 70%、員工 20%、政府 10%）</li>
+        <li><strong>健保費率</strong>：5.17%（雇主 60%、員工 30%、政府 10%）</li>
+        <li><strong>勞退提撥</strong>：雇主提撥 6%，以實際薪資計算（非級距）</li>
+        <li><strong>眷屬影響</strong>：每增加 1 位眷屬，健保費等比增加（雇主與員工皆然）</li>
+        <li><strong>最新費率</strong>：請以勞保局與健保署公告為準，本試算僅供參考</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="text-align: center;">
+    <a href="tax-calculator.html" class="back-btn">← 返回首頁</a>
+  </div>
+</div>
+
+<script>
+  // 投保薪資級距表
+  const salaryGrades = [
+    26400, 27600, 28800, 30300, 31800, 33300, 34800, 36300,
+    38200, 40100, 42000, 43900, 45800, 48200, 50600, 53000,
+    55400, 57800, 60800, 63800, 66800, 69800, 72800, 76500,
+    80400, 84000, 87600, 92400, 98600, 104600, 110600, 116500, 120000
+  ];
+  
+  function getGrade(salary) {
+    for (let g of salaryGrades) {
+      if (salary <= g) return g;
+    }
+    return salaryGrades[salaryGrades.length - 1];
+  }
+  
+  function fmt(n) {
+    if (isNaN(n) || n === null) return '-';
+    return '$' + Math.round(n).toLocaleString('zh-TW');
+  }
+  
+  function calculateFromAnnual() {
+    const annual = parseFloat(document.getElementById('annualSalary').value) || 0;
+    const monthly = annual / 12;
+    document.getElementById('monthlySalary').value = monthly > 0 ? Math.round(monthly) : '';
+    calculate();
+  }
+  
+  function calculateFromMonthly() {
+    const monthly = parseFloat(document.getElementById('monthlySalary').value) || 0;
+    const annual = monthly * 12;
+    document.getElementById('annualSalary').value = annual > 0 ? Math.round(annual) : '';
+    calculate();
+  }
+  
+  function calculate() {
+    const annual = parseFloat(document.getElementById('annualSalary').value) || 0;
+    const monthly = annual / 12;
+    const deps = parseInt(document.getElementById('dependents').value) || 0;
+    
+    if (monthly === 0) {
+      // 清空所有結果
+      ['companyGrade', 'companyDeps', 'companyLabor', 'companyHealth', 'companyPension', 
+       'companyTotal', 'companyAnnual', 'empGrade', 'empDeps', 'empLabor', 'empHealth', 
+       'empTotal', 'empAnnual', 'selfHealth', 'selfHealthAnnual', 'healthDiff', 
+       'healthDiffNote', 'healthDiffAnnual'].forEach(id => {
+        document.getElementById(id).textContent = '-';
+      });
+      return;
+    }
+    
+    const grade = getGrade(monthly);
+    const healthBase = 1 + deps;
+    
+    // === 完整勞健保情境 ===
+    // 公司負擔
+    const companyLabor = grade * 0.13 * 0.7;
+    const companyHealth = grade * 0.0517 * 0.6 * healthBase;
+    const companyPension = monthly * 0.06;
+    const companyMonthly = companyLabor + companyHealth + companyPension;
+    const companyYearly = companyMonthly * 12;
+    
+    // 員工自付
+    const empLabor = grade * 0.13 * 0.2;
+    const empHealth = grade * 0.0517 * 0.3 * healthBase;
+    const empMonthly = empLabor + empHealth;
+    const empYearly = empMonthly * 12;
+    
+    // === 自行投保健保（完全不加入公司） ===
+    const selfHealthFee = grade * 0.0517 * 0.6 * healthBase;
+    const selfHealthYearly = selfHealthFee * 12;
+    const healthDiff = selfHealthFee - empHealth;
+    const healthDiffYearly = healthDiff * 12;
+    
+    // 更新完整勞健保顯示
+    document.getElementById('companyGrade').textContent = fmt(grade);
+    document.getElementById('companyDeps').textContent = deps > 0 ? `本人 + ${deps} 眷 = ${healthBase} 口` : '僅本人';
+    document.getElementById('companyLabor').textContent = fmt(companyLabor);
+    document.getElementById('companyHealth').textContent = fmt(companyHealth);
+    document.getElementById('companyPension').textContent = fmt(companyPension);
+    document.getElementById('companyTotal').textContent = fmt(companyMonthly);
+    document.getElementById('companyAnnual').textContent = fmt(companyYearly);
+    
+    document.getElementById('empGrade').textContent = fmt(grade);
+    document.getElementById('empDeps').textContent = deps > 0 ? `本人 + ${deps} 眷 = ${healthBase} 口` : '僅本人';
+    document.getElementById('empLabor').textContent = fmt(empLabor);
+    document.getElementById('empHealth').textContent = fmt(empHealth);
+    document.getElementById('empTotal').textContent = fmt(empMonthly);
+    document.getElementById('empAnnual').textContent = fmt(empYearly);
+    
+    // 更新自行投保健保顯示
+    document.getElementById('selfHealth').textContent = fmt(selfHealthFee);
+    document.getElementById('selfHealthAnnual').textContent = fmt(selfHealthYearly);
+    document.getElementById('healthDiff').textContent = (healthDiff >= 0 ? '+' : '') + fmt(healthDiff);
+    document.getElementById('healthDiffAnnual').textContent = (healthDiffYearly >= 0 ? '+' : '') + fmt(healthDiffYearly);
+    
+    if (healthDiff > 0) {
+      document.getElementById('healthDiffNote').textContent = '自行投保較貴，建議加入公司健保';
+    } else if (healthDiff < 0) {
+      document.getElementById('healthDiffNote').textContent = '自行投保較便宜（罕見情況）';
+    } else {
+      document.getElementById('healthDiffNote').textContent = '費用相同';
+    }
+    
+    // 更新級距表格高亮
+    highlightCurrentGrade(grade);
+  }
+  
+  // 生成級距表格
+  function generateGradeTable() {
+    const tbody = document.getElementById('gradeTableBody');
+    tbody.innerHTML = '';
+    
+    salaryGrades.forEach((grade, index) => {
+      const tr = document.createElement('tr');
+      tr.id = `grade-row-${grade}`;
+      tr.style.cssText = 'border-bottom: 1px solid #e2e8f0; transition: all 0.2s;';
+      
+      // 計算各項保費（無眷屬）
+      const laborInsCompany = Math.round(grade * 0.13 * 0.7); // 勞保公司負擔 70%
+      const healthInsCompany = Math.round(grade * 0.0517 * 0.6); // 健保公司負擔 60%
+      const pensionCompany = Math.round(grade * 0.06); // 勞退提撥 6%
+      const companyTotal = laborInsCompany + healthInsCompany + pensionCompany;
+      
+      const laborInsEmp = Math.round(grade * 0.13 * 0.2); // 勞保員工自付 20%
+      const healthInsEmp = Math.round(grade * 0.0517 * 0.3); // 健保員工自付 30%
+      const empTotal = laborInsEmp + healthInsEmp;
+      
+      tr.innerHTML = `
+        <td style="padding: 10px 8px; text-align: center; font-weight: 600; color: #4a5568; border-right: 1px solid #e2e8f0;">${index + 1}</td>
+        <td style="padding: 10px 8px; text-align: right; font-weight: 700; color: #2d3748; border-right: 1px solid #e2e8f0;">$${grade.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #6b46c1; font-weight: 600; border-right: 1px solid #f3f4f6;">$${laborInsCompany.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #2b6cb0; font-weight: 600; border-right: 1px solid #f3f4f6;">$${healthInsCompany.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #276749; font-weight: 600; border-right: 1px solid #f3f4f6;">$${pensionCompany.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #1a202c; font-weight: 800; background: #f7fafc; border-right: 1px solid #e2e8f0;">$${companyTotal.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #c05621; font-weight: 600; border-right: 1px solid #f3f4f6;">$${laborInsEmp.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #c05621; font-weight: 600; border-right: 1px solid #f3f4f6;">$${healthInsEmp.toLocaleString('zh-TW')}</td>
+        <td style="padding: 10px 6px; text-align: right; color: #1a202c; font-weight: 800; background: #fffaf0;">$${empTotal.toLocaleString('zh-TW')}</td>
+      `;
+      
+      tbody.appendChild(tr);
+    });
+  }
+  
+  // 高亮目前使用的級距
+  function highlightCurrentGrade(currentGrade) {
+    // 先移除所有高亮
+    salaryGrades.forEach(grade => {
+      const row = document.getElementById(`grade-row-${grade}`);
+      if (row) {
+        row.style.background = 'white';
+      }
+    });
+    
+    // 高亮目前級距
+    const currentRow = document.getElementById(`grade-row-${currentGrade}`);
+    if (currentRow) {
+      currentRow.style.background = 'linear-gradient(90deg, #fef3c7, #fde68a)';
+      currentRow.style.fontWeight = '700';
+      currentRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+  
+  // 從 URL 參數讀取資料
+  window.onload = function() {
+    // 生成級距表格
+    generateGradeTable();
+    
+    const params = new URLSearchParams(window.location.search);
+    const empId = params.get('empId');
+    const name = params.get('name');
+    const salary = params.get('salary');
+    const deps = params.get('deps');
+    
+    if (name) {
+      document.getElementById('empNameDisplay').textContent = name;
+    }
+    
+    if (salary) {
+      const monthly = parseFloat(salary);
+      const annual = monthly * 12;
+      document.getElementById('annualSalary').value = annual;
+      document.getElementById('monthlySalary').value = monthly;
+    }
+    
+    if (deps) {
+      document.getElementById('dependents').value = deps;
+    }
+    
+    calculate();
+  };
+</script>
+</body>
+</html>

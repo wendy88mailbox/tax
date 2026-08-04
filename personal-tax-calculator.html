@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>個人綜合所得稅試算</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+      min-height: 100vh; padding: 30px 16px; color: #1a202c;
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    
+    .header {
+      text-align: center; margin-bottom: 30px; color: white;
+    }
+    .header h1 { font-size: 2rem; font-weight: 800; margin-bottom: 8px; text-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+    .header .emp-name { font-size: 1.2rem; font-weight: 600; opacity: 0.95; }
+    
+    .card {
+      background: white; border-radius: 20px; padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.15); margin-bottom: 20px;
+    }
+    
+    .card h2 { 
+      font-size: 1.1rem; font-weight: 700; margin-bottom: 20px; 
+      color: #2d3748; display: flex; align-items: center; gap: 10px;
+      padding-bottom: 12px; border-bottom: 3px solid #e2e8f0;
+    }
+    
+    .input-group { margin-bottom: 20px; }
+    .input-group label { 
+      display: block; font-size: 0.9rem; font-weight: 600; 
+      color: #4a5568; margin-bottom: 8px; 
+    }
+    .input-wrapper { position: relative; display: flex; align-items: center; max-width: 400px; }
+    .input-wrapper span.prefix { 
+      position: absolute; left: 14px; color: #718096; 
+      font-size: 1rem; font-weight: 600; pointer-events: none; 
+    }
+    .input-wrapper input {
+      width: 100%; padding: 14px 16px 14px 32px;
+      border: 3px solid #e2e8f0; border-radius: 12px;
+      font-size: 1.1rem; color: #2d3748; transition: all 0.2s; 
+      outline: none; font-weight: 600;
+    }
+    .input-wrapper input:focus { 
+      border-color: #48bb78; 
+      box-shadow: 0 0 0 3px rgba(72,187,120,0.1);
+    }
+    
+    .result-section {
+      background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+      border-radius: 16px; padding: 24px; margin-bottom: 20px;
+    }
+    
+    .result-header {
+      font-size: 0.75rem; font-weight: 800; text-transform: uppercase;
+      letter-spacing: 0.1em; color: #22543d; margin-bottom: 16px;
+      display: flex; align-items: center; gap: 8px;
+    }
+    
+    .result-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 12px 16px; border-radius: 12px; margin-bottom: 8px;
+      font-size: 0.95rem; transition: transform 0.2s;
+      background: white; border-left: 4px solid #68d391;
+    }
+    .result-row:hover { transform: translateX(4px); }
+    .result-row .label { color: #4a5568; font-weight: 600; }
+    .result-row .value { font-weight: 800; font-size: 1.05rem; color: #276749; }
+    
+    .total-box {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      border-radius: 16px; padding: 20px 24px;
+      color: white; margin-top: 16px;
+      box-shadow: 0 8px 24px rgba(72,187,120,0.3);
+    }
+    .total-box .label {
+      font-size: 0.85rem; font-weight: 600; opacity: 0.9;
+      margin-bottom: 6px;
+    }
+    .total-box .value {
+      font-size: 2rem; font-weight: 900;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    
+    .tax-table {
+      width: 100%; border-collapse: collapse; font-size: 0.85rem;
+      margin-top: 16px;
+    }
+    .tax-table thead tr {
+      background: linear-gradient(135deg, #48bb78, #38a169);
+      color: white;
+    }
+    .tax-table th {
+      padding: 12px 10px; text-align: left; font-weight: 700;
+    }
+    .tax-table tbody tr {
+      border-bottom: 1px solid #e2e8f0;
+    }
+    .tax-table tbody tr:hover {
+      background: #f0fff4;
+    }
+    .tax-table td {
+      padding: 10px; color: #2d3748;
+    }
+    .tax-table .highlight {
+      background: #fef3c7; font-weight: 700;
+    }
+    
+    .note-box {
+      background: #fffbeb; border-left: 5px solid #f59e0b;
+      border-radius: 0 12px 12px 0; padding: 16px 18px;
+      font-size: 0.85rem; color: #92400e; line-height: 1.7;
+      margin-top: 20px;
+    }
+    .note-box strong { color: #78350f; }
+    .note-box ul { padding-left: 20px; margin-top: 8px; }
+    .note-box li { margin-bottom: 6px; }
+    
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 12px 24px; background: white; color: #48bb78;
+      border: 3px solid #48bb78; border-radius: 12px;
+      font-size: 0.95rem; font-weight: 700; cursor: pointer;
+      transition: all 0.2s; text-decoration: none;
+      margin-top: 20px;
+    }
+    .back-btn:hover {
+      background: #48bb78; color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(72,187,120,0.3);
+    }
+    
+    .info-badge {
+      display: inline-block; padding: 4px 10px; border-radius: 20px;
+      font-size: 0.75rem; font-weight: 700; margin-left: 8px;
+    }
+    .badge-info { background: #c6f6d5; color: #22543d; }
+    
+    .divider {
+      height: 2px; background: linear-gradient(to right, transparent, #e2e8f0, transparent);
+      margin: 20px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>📊 個人綜合所得稅試算</h1>
+    <div class="emp-name" id="empNameDisplay">員工資料</div>
+    <div style="margin-top: 12px; padding: 10px 16px; background: rgba(255,255,255,0.2); border-radius: 10px; font-size: 0.85rem; backdrop-filter: blur(10px);">
+      ⚠️ 本試算採用2024年稅率，實際申報請至 <a href="https://www.etax.nat.gov.tw/" target="_blank" style="color: white; font-weight: 700; text-decoration: underline;">財政部電子申報繳稅服務網</a> 確認最新資訊
+    </div>
+  </div>
+
+  <!-- 輸入區 -->
+  <div class="card">
+    <h2>📋 基本資料</h2>
+    
+    <div class="input-group">
+      <label>年度總所得 <span class="info-badge badge-info">薪資所得</span></label>
+      <div class="input-wrapper">
+        <span class="prefix">$</span>
+        <input type="number" id="annualIncome" placeholder="例如：600000" min="0" oninput="calculate()"/>
+      </div>
+      <div style="margin-top: 8px; font-size: 0.8rem; color: #718096;">
+        您的年薪： <span id="displayAnnual" style="font-weight: 700; color: #276749;">-</span>
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label>婚姻狀況</label>
+      <div style="display: flex; gap: 16px; align-items: center;">
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; transition: all 0.2s;" id="singleLabel">
+          <input type="radio" name="maritalStatus" value="single" id="maritalSingle" checked onchange="calculate()" style="cursor: pointer;"/>
+          <span style="font-weight: 600; color: #2d3748;">單身</span>
+        </label>
+        <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 10px 16px; border: 2px solid #e2e8f0; border-radius: 10px; transition: all 0.2s;" id="marriedLabel">
+          <input type="radio" name="maritalStatus" value="married" id="maritalMarried" onchange="calculate()" style="cursor: pointer;"/>
+          <span style="font-weight: 600; color: #2d3748;">已婚（有配偶）</span>
+        </label>
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label>撫養親屬人數 <span class="info-badge badge-info">直系尊親屬、子女等</span></label>
+      <div class="input-wrapper">
+        <span class="prefix">#</span>
+        <input type="number" id="dependents" placeholder="0" min="0" value="0" oninput="calculate()"/>
+      </div>
+      <div style="margin-top: 8px; font-size: 0.75rem; color: #718096;">
+        包含：直系尊親屬（父母、祖父母）、未成年子女、或其他符合條件之親屬
+      </div>
+    </div>
+    
+    <div class="input-group">
+      <label>年滿70歲撫養親屬人數 <span class="info-badge badge-info">免稅額較高</span></label>
+      <div class="input-wrapper">
+        <span class="prefix">#</span>
+        <input type="number" id="dependentsOver70" placeholder="0" min="0" value="0" oninput="calculate()"/>
+      </div>
+      <div style="margin-top: 8px; font-size: 0.75rem; color: #718096;">
+        70歲以上撫養親屬免稅額為 $145,500（較一般 $97,000 高）
+      </div>
+    </div>
+  </div>
+
+  <!-- 計算結果 -->
+  <div class="card">
+    <h2>💰 應納稅額試算</h2>
+    
+    <div class="result-section">
+      <div class="result-header">📊 稅額計算明細</div>
+      
+      <div class="result-row">
+        <span class="label">年度總所得</span>
+        <span class="value" id="resIncome">$0</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row">
+        <span class="label">減：免稅額（本人）</span>
+        <span class="value" id="resTaxFreeSelf">- $97,000</span>
+      </div>
+      <div class="result-row" id="rowTaxFreeSpouse" style="display: none;">
+        <span class="label">減：免稅額（配偶）</span>
+        <span class="value" id="resTaxFreeSpouse">- $97,000</span>
+      </div>
+      <div class="result-row" id="rowTaxFreeDeps" style="display: none;">
+        <span class="label">減：免稅額（撫養親屬 <span id="depsCount">0</span> 人）</span>
+        <span class="value" id="resTaxFreeDeps">- $0</span>
+      </div>
+      <div class="result-row" id="rowTaxFreeDepsOver70" style="display: none;">
+        <span class="label">減：免稅額（70歲以上撫養親屬 <span id="depsOver70Count">0</span> 人）</span>
+        <span class="value" id="resTaxFreeDepsOver70">- $0</span>
+      </div>
+      <div class="result-row">
+        <span class="label">減：標準扣除額 <span id="deductType">（單身）</span></span>
+        <span class="value" id="resStdDeduct">- $131,000</span>
+      </div>
+      <div class="result-row">
+        <span class="label">減：薪資所得特別扣除額</span>
+        <span class="value" id="resSalDeduct">- $218,000</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row" style="background: #fef3c7; border-left-color: #f59e0b;">
+        <span class="label" style="color: #78350f;">綜合所得淨額</span>
+        <span class="value" style="color: #92400e;" id="resNetIncome">$0</span>
+      </div>
+      
+      <div class="divider"></div>
+      
+      <div class="result-row" style="background: #e0f2fe; border-left-color: #3b82f6;">
+        <span class="label" style="color: #1e40af;">適用稅率級距</span>
+        <span class="value" style="color: #1e3a8a;" id="resTaxRate">-</span>
+      </div>
+      <div class="result-row" style="background: #e0f2fe; border-left-color: #3b82f6;">
+        <span class="label" style="color: #1e40af;">累進差額</span>
+        <span class="value" style="color: #1e3a8a;" id="resProgDiff">$0</span>
+      </div>
+      
+      <div class="total-box">
+        <div class="label">個人應納綜合所得稅額</div>
+        <div class="value" id="resTaxTotal">$0</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 稅率級距表 -->
+  <div class="card">
+    <h2>📋 綜合所得稅累進稅率表</h2>
+    
+    <div class="note-box" style="background: #f0f9ff; border-left-color: #3b82f6;">
+      <strong style="color: #1e40af;">💡 說明：</strong>
+      台灣綜合所得稅採累進稅率制度，所得淨額越高，適用稅率越高。下表為2024年適用稅率。
+    </div>
+    
+    <table class="tax-table">
+      <thead>
+        <tr>
+          <th>級距</th>
+          <th style="text-align: right;">綜合所得淨額</th>
+          <th style="text-align: center;">稅率</th>
+          <th style="text-align: right;">累進差額</th>
+        </tr>
+      </thead>
+      <tbody id="taxTableBody">
+        <tr>
+          <td>第 1 級</td>
+          <td style="text-align: right;">$0 ~ $590,000</td>
+          <td style="text-align: center; font-weight: 700; color: #48bb78;">5%</td>
+          <td style="text-align: right;">$0</td>
+        </tr>
+        <tr>
+          <td>第 2 級</td>
+          <td style="text-align: right;">$590,001 ~ $1,330,000</td>
+          <td style="text-align: center; font-weight: 700; color: #ecc94b;">12%</td>
+          <td style="text-align: right;">$41,300</td>
+        </tr>
+        <tr>
+          <td>第 3 級</td>
+          <td style="text-align: right;">$1,330,001 ~ $2,660,000</td>
+          <td style="text-align: center; font-weight: 700; color: #ed8936;">20%</td>
+          <td style="text-align: right;">$147,700</td>
+        </tr>
+        <tr>
+          <td>第 4 級</td>
+          <td style="text-align: right;">$2,660,001 ~ $4,980,000</td>
+          <td style="text-align: center; font-weight: 700; color: #fc8181;">30%</td>
+          <td style="text-align: right;">$413,700</td>
+        </tr>
+        <tr>
+          <td>第 5 級</td>
+          <td style="text-align: right;">$4,980,001 以上</td>
+          <td style="text-align: center; font-weight: 700; color: #c53030;">40%</td>
+          <td style="text-align: right;">$911,700</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 注意事項 -->
+  <div class="card">
+    <h2>💵 本試算使用之免稅額與扣除額標準</h2>
+    
+    <div style="background: #f0f9ff; border-left: 4px solid #3b82f6; border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+      <div style="font-size: 0.85rem; color: #1e40af; font-weight: 700; margin-bottom: 12px;">
+        📅 2024年度（113年度）標準
+      </div>
+      <table style="width: 100%; font-size: 0.85rem;">
+        <tr style="border-bottom: 1px solid #bfdbfe;">
+          <td style="padding: 8px; color: #1e3a8a; font-weight: 600;">免稅額（本人／配偶）</td>
+          <td style="padding: 8px; text-align: right; color: #1e40af; font-weight: 700;">$97,000</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #bfdbfe;">
+          <td style="padding: 8px; color: #1e3a8a; font-weight: 600;">免稅額（撫養親屬，一般）</td>
+          <td style="padding: 8px; text-align: right; color: #1e40af; font-weight: 700;">$97,000／人</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #bfdbfe;">
+          <td style="padding: 8px; color: #1e3a8a; font-weight: 600;">免稅額（撫養親屬，70歲以上）</td>
+          <td style="padding: 8px; text-align: right; color: #1e40af; font-weight: 700;">$145,500／人</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #bfdbfe;">
+          <td style="padding: 8px; color: #1e3a8a; font-weight: 600;">標準扣除額（單身）</td>
+          <td style="padding: 8px; text-align: right; color: #1e40af; font-weight: 700;">$131,000</td>
+        </tr>
+        <tr style="border-bottom: 1px solid #bfdbfe;">
+          <td style="padding: 8px; color: #1e3a8a; font-weight: 600;">標準扣除額（已婚）</td>
+          <td style="padding: 8px; text-align: right; color: #1e40af; font-weight: 700;">$262,000</td>
+        </tr>
+        <tr>
+          <td style="padding: 8px; color: #1e3a8a; font-weight: 600;">薪資所得特別扣除額</td>
+          <td style="padding: 8px; text-align: right; color: #1e40af; font-weight: 700;">$218,000／人</td>
+        </tr>
+      </table>
+      <div style="margin-top: 12px; padding: 10px; background: #fffbeb; border-radius: 8px; font-size: 0.75rem; color: #92400e;">
+        ⚠️ <strong>重要提醒：</strong>稅法每年可能調整，上述數值為本試算工具採用之標準。實際申報時，請以財政部公告之最新標準為準。
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>⚠️ 試算說明</h2>
+    <div class="note-box">
+      <ul>
+        <li><strong>免稅額（2024年）</strong>：
+          <ul style="margin-top: 4px;">
+            <li>本人：$97,000</li>
+            <li>配偶：$97,000</li>
+            <li>撫養親屬每人：$97,000</li>
+            <li>年滿70歲（本人、配偶、撫養親屬）：$145,500</li>
+          </ul>
+        </li>
+        <li><strong>標準扣除額（2024年）</strong>：單身 $131,000、有配偶 $262,000</li>
+        <li><strong>薪資所得特別扣除額</strong>：每人最高 $218,000（本試算僅計算本人）</li>
+        <li><strong>撫養親屬資格</strong>：
+          <ul style="margin-top: 4px;">
+            <li>直系尊親屬（父母、祖父母等）年滿60歲或無謀生能力</li>
+            <li>子女未滿20歲或滿20歲以上在校就學、身心障礙或無謀生能力</li>
+            <li>兄弟姊妹未滿20歲或滿20歲以上在校就學、身心障礙或無謀生能力</li>
+          </ul>
+        </li>
+        <li><strong>扣除額選擇</strong>：可選擇標準扣除額或列舉扣除額（醫藥費、保險費、房貸利息等），本試算採標準扣除額</li>
+        <li><strong>其他扣除額</strong>：如有身心障礙、教育學費、長期照顧、幼兒學前等特別扣除額，實際稅額會更低</li>
+        <li><strong>計算公式</strong>：應納稅額 = 綜合所得淨額 × 稅率 - 累進差額</li>
+        <li><strong>本試算簡化</strong>：假設撫養親屬未滿70歲，且僅計算本人薪資所得特別扣除額</li>
+        <li><strong>實際申報</strong>：實際報稅時，請使用財政部報稅軟體或諮詢專業人士</li>
+      </ul>
+    </div>
+  </div>
+
+  <div style="text-align: center;">
+    <a href="tax-calculator.html" class="back-btn">← 返回首頁</a>
+  </div>
+</div>
+
+<script>
+  // 稅率級距（2024年）
+  const taxBrackets = [
+    { limit: 590000,    rate: 0.05, diff: 0 },
+    { limit: 1330000,   rate: 0.12, diff: 41300 },
+    { limit: 2660000,   rate: 0.20, diff: 147700 },
+    { limit: 4980000,   rate: 0.30, diff: 413700 },
+    { limit: Infinity,  rate: 0.40, diff: 911700 }
+  ];
+  
+  // 基本扣除額（2024年）
+  const taxFreeSelf = 97000;      // 免稅額（本人）
+  const taxFreeSpouse = 97000;    // 免稅額（配偶）
+  const taxFreeDep = 97000;       // 免稅額（撫養親屬每人）
+  const taxFreeDepOver70 = 145500;// 免稅額（70歲以上撫養親屬每人）
+  const stdDeductSingle = 131000; // 標準扣除額（單身）
+  const stdDeductMarried = 262000;// 標準扣除額（已婚）
+  const salDeduct = 218000;       // 薪資所得特別扣除額
+  
+  function fmt(n) {
+    if (isNaN(n) || n === null) return '-';
+    return '$' + Math.round(n).toLocaleString('zh-TW');
+  }
+  
+  function getTaxBracket(netIncome) {
+    for (let bracket of taxBrackets) {
+      if (netIncome <= bracket.limit) {
+        return bracket;
+      }
+    }
+    return taxBrackets[taxBrackets.length - 1];
+  }
+  
+  function calculate() {
+    const income = parseFloat(document.getElementById('annualIncome').value) || 0;
+    const isMarried = document.getElementById('maritalMarried').checked;
+    const dependents = parseInt(document.getElementById('dependents').value) || 0;
+    const dependentsOver70 = parseInt(document.getElementById('dependentsOver70').value) || 0;
+    
+    // 更新婚姻狀況選項樣式
+    const singleLabel = document.getElementById('singleLabel');
+    const marriedLabel = document.getElementById('marriedLabel');
+    if (isMarried) {
+      marriedLabel.style.borderColor = '#48bb78';
+      marriedLabel.style.background = '#f0fff4';
+      singleLabel.style.borderColor = '#e2e8f0';
+      singleLabel.style.background = 'white';
+    } else {
+      singleLabel.style.borderColor = '#48bb78';
+      singleLabel.style.background = '#f0fff4';
+      marriedLabel.style.borderColor = '#e2e8f0';
+      marriedLabel.style.background = 'white';
+    }
+    
+    document.getElementById('displayAnnual').textContent = income > 0 ? fmt(income) : '-';
+    
+    if (income === 0) {
+      document.getElementById('resIncome').textContent = '$0';
+      document.getElementById('resNetIncome').textContent = '$0';
+      document.getElementById('resTaxRate').textContent = '-';
+      document.getElementById('resProgDiff').textContent = '$0';
+      document.getElementById('resTaxTotal').textContent = '$0';
+      return;
+    }
+    
+    // 計算總免稅額
+    let totalTaxFree = taxFreeSelf; // 本人
+    if (isMarried) {
+      totalTaxFree += taxFreeSpouse; // 配偶
+    }
+    if (dependents > 0) {
+      totalTaxFree += taxFreeDep * dependents; // 一般撫養親屬
+    }
+    if (dependentsOver70 > 0) {
+      totalTaxFree += taxFreeDepOver70 * dependentsOver70; // 70歲以上撫養親屬
+    }
+    
+    // 標準扣除額
+    const stdDeduct = isMarried ? stdDeductMarried : stdDeductSingle;
+    
+    // 計算綜合所得淨額
+    const netIncome = Math.max(0, income - totalTaxFree - stdDeduct - salDeduct);
+    
+    // 找出適用級距
+    const bracket = getTaxBracket(netIncome);
+    
+    // 計算應納稅額
+    const tax = Math.max(0, netIncome * bracket.rate - bracket.diff);
+    
+    // 更新顯示
+    document.getElementById('resIncome').textContent = fmt(income);
+    
+    // 顯示/隱藏配偶免稅額
+    if (isMarried) {
+      document.getElementById('rowTaxFreeSpouse').style.display = 'flex';
+      document.getElementById('resTaxFreeSpouse').textContent = '- ' + fmt(taxFreeSpouse);
+    } else {
+      document.getElementById('rowTaxFreeSpouse').style.display = 'none';
+    }
+    
+    // 顯示/隱藏一般撫養親屬免稅額
+    if (dependents > 0) {
+      document.getElementById('rowTaxFreeDeps').style.display = 'flex';
+      document.getElementById('depsCount').textContent = dependents;
+      document.getElementById('resTaxFreeDeps').textContent = '- ' + fmt(taxFreeDep * dependents);
+    } else {
+      document.getElementById('rowTaxFreeDeps').style.display = 'none';
+    }
+    
+    // 顯示/隱藏70歲以上撫養親屬免稅額
+    if (dependentsOver70 > 0) {
+      document.getElementById('rowTaxFreeDepsOver70').style.display = 'flex';
+      document.getElementById('depsOver70Count').textContent = dependentsOver70;
+      document.getElementById('resTaxFreeDepsOver70').textContent = '- ' + fmt(taxFreeDepOver70 * dependentsOver70);
+    } else {
+      document.getElementById('rowTaxFreeDepsOver70').style.display = 'none';
+    }
+    
+    // 更新扣除額類型
+    document.getElementById('deductType').textContent = isMarried ? '（已婚）' : '（單身）';
+    document.getElementById('resStdDeduct').textContent = '- ' + fmt(stdDeduct);
+    
+    document.getElementById('resNetIncome').textContent = fmt(netIncome);
+    
+    if (netIncome <= 0) {
+      document.getElementById('resTaxRate').textContent = '免稅';
+      document.getElementById('resProgDiff').textContent = '$0';
+      document.getElementById('resTaxTotal').textContent = '$0';
+    } else {
+      document.getElementById('resTaxRate').textContent = (bracket.rate * 100) + '%';
+      document.getElementById('resProgDiff').textContent = '- ' + fmt(bracket.diff);
+      document.getElementById('resTaxTotal').textContent = fmt(tax);
+    }
+    
+    // 高亮稅率表中的適用級距
+    highlightTaxBracket(netIncome);
+  }
+  
+  function highlightTaxBracket(netIncome) {
+    const rows = document.querySelectorAll('#taxTableBody tr');
+    rows.forEach((row, index) => {
+      row.classList.remove('highlight');
+      if (netIncome > 0) {
+        const bracket = taxBrackets[index];
+        const prevLimit = index > 0 ? taxBrackets[index - 1].limit : 0;
+        if (netIncome > prevLimit && netIncome <= bracket.limit) {
+          row.classList.add('highlight');
+        }
+      }
+    });
+  }
+  
+  // 從 URL 參數讀取資料
+  window.onload = function() {
+    const params = new URLSearchParams(window.location.search);
+    const name = params.get('name');
+    const annual = params.get('annual');
+    
+    if (name) {
+      document.getElementById('empNameDisplay').textContent = name;
+    }
+    
+    if (annual) {
+      const annualVal = parseFloat(annual);
+      document.getElementById('annualIncome').value = annualVal;
+    }
+    
+    calculate();
+  };
+</script>
+</body>
+</html>
